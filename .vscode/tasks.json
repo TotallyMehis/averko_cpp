@@ -12,7 +12,8 @@
                 "${workspaceFolder}\\calculator.exe",
                 "lexer.cpp",
                 "parser.cpp",
-                "tests.cpp"
+                "main.cpp",
+                "options.cpp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

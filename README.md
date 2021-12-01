@@ -2,6 +2,8 @@
 
 Input a math problem like `2 + 6 * 2` to get the result!
 
+Has an options menu that saves the selected options to a file called `options.file`.
+
 ## Building
 
 Requires Visual Studio. Version 2019 tested.
