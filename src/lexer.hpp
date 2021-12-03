@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "exceptions.h"
+
 enum struct TokenType
 {
     OperatorAdd = 0, // +
@@ -58,4 +60,10 @@ private:
     static CharType GetCharType(char c);
     static LexerToken TokenToLexerToken(const std::string& token, CharType char_type, int text_pos);
     static bool IsSameCharType(CharType cur_type, CharType new_type);
+};
+
+class LexerException : public BaseException
+{
+public:
+    LexerException(const char* reason) : BaseException(reason) {}
 };

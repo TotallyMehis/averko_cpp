@@ -25,7 +25,7 @@ void Lexer::Parse(const std::string& data, std::vector<LexerToken>& tokens)
 
 
     auto length = data.length();
-    for (auto i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++)
     {
         auto cur = data[i];
         auto char_type = GetCharType(cur);
@@ -80,7 +80,7 @@ CharType Lexer::GetCharType(char c)
         return CharType::ParenthesisEnd;
     }
 
-    if (c >= '0' && c <= '9')
+    if ((c >= '0' && c <= '9') || c == '.' || c == ',')
     {
         return CharType::Value;
     }
@@ -107,12 +107,20 @@ LexerToken Lexer::TokenToLexerToken(const std::string& token, CharType char_type
     switch (char_type)
     {
     case CharType::Value:
+        if (token.find(',') != std::string::npos || token.find('.') != std::string::npos)
+        {
+            throw LexerException("Fractional numbers aren't allowed.");
+        }
+
         lexer_token.type = TokenType::Constant;
         lexer_token.value = token;
         break;
     case CharType::Character:
-        lexer_token.type = TokenType::Variable;
-        lexer_token.value = token;
+        throw LexerException("Calculation cannot contain characters.");
+
+        // TODO
+        //lexer_token.type = TokenType::Variable;
+        //lexer_token.value = token;
         break;
     case CharType::OperatorAdd:
         lexer_token.type = TokenType::OperatorAdd;
@@ -136,7 +144,7 @@ LexerToken Lexer::TokenToLexerToken(const std::string& token, CharType char_type
         lexer_token.type = TokenType::ParenthesisEnd;
         break;
     default:
-        printf("Unimplemented character %s!\n", token.c_str());
+        throw LexerException("Unexpected character type!\n");
         break;
     }
 
