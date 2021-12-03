@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "lexer.hpp"
 #include "parser.hpp"
@@ -136,10 +137,12 @@ static void CalculatorMenu()
     std::cout << "Calculator" << std::endl;
     std::cout << std::endl;
     std::cout << "Write a calculation, press Enter and the program will output the answer." << std::endl;
+    std::cout << "NOTE: Only calculations that contain and resolve to whole numbers are allowed." << std::endl;
     std::cout << "Press Enter by itself to exit." << std::endl;
     std::cout << std::endl;
     std::cout << "Examples:" << std::endl;
     std::cout << "5 * (2 + 10)" << std::endl;
+    std::cout << "2 - (-2)" << std::endl;
     std::cout << "4 / 2 * 4^2 - 10" << std::endl;
     std::cout << "========================" << std::endl;
 
@@ -151,16 +154,42 @@ static void CalculatorMenu()
         std::string calculation;
         ReadString(calculation);
 
-        if (!calculation.length()) {
+        if (!calculation.length())
+        {
             break;
         }
 
-        std::vector<LexerToken> tokens;
-        Lexer::Parse(calculation, tokens);
-        auto start = Parser::Parse(tokens);
+        try
+        {
+            std::vector<LexerToken> tokens;
+            Lexer::Parse(calculation, tokens);
 
-        auto answer = start->Solve();
+            auto start = Parser::Parse(tokens);
 
-        std::cout << "Answer is: " << answer << std::endl;
+            auto answer = start->Solve().GetValueAsInt64();
+
+            std::cout << "Answer is: " << answer << std::endl;
+
+            if (OptionsState::GetOption("save_calculations_to_file"))
+            {
+                std::ofstream stream("calculations.txt", std::ios_base::app);
+                if (stream.is_open())
+                {
+                    stream << calculation << " = " << answer << std::endl;
+                }
+            }
+        }
+        catch (const ParsingException& e)
+        {
+            std::cout << "Error in calculation: " << e.what() << std::endl;
+        }
+        catch (const SolveException& e)
+        {
+            std::cout << "Error solving: " << e.what() << std::endl;
+        }
+        catch (const LexerException& e)
+        {
+            std::cout << "Error lexing: " << e.what() << std::endl;
+        }
     }
 }

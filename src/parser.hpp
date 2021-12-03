@@ -3,7 +3,9 @@
 #include <memory>
 #include <vector>
 
+#include "exceptions.h"
 #include "lexer.hpp"
+#include "value.hpp"
 
 
 enum struct Priority : int
@@ -24,7 +26,7 @@ public:
     Expression(Priority priority);
     virtual ~Expression();
 
-    virtual int Solve() = 0;
+    virtual Value Solve() = 0;
 
     Priority GetPriority() const { return priority; }
 
@@ -45,4 +47,18 @@ public:
 
 private:
     static Expression* InnerParse(const std::vector<LexerToken>& tokens);
+};
+
+
+
+class ParsingException : public BaseException
+{
+public:
+    ParsingException(const char* reason) : BaseException(reason) {}
+};
+
+class SolveException : public BaseException
+{
+public:
+    SolveException(const char* reason) : BaseException(reason) {}
 };

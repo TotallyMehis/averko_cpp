@@ -34,7 +34,7 @@ public:
         this->value = atoi(value.c_str());
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
         return value;
     }
@@ -59,8 +59,12 @@ public:
         }
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
+        if (inner_expression == nullptr)
+        {
+            throw SolveException("Empty parentheses.");
+        }
         return inner_expression->Solve();
     }
 
@@ -75,9 +79,19 @@ public:
     {
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
-        return left->Solve() + right->Solve();
+        if (right == nullptr)
+        {
+            throw SolveException("Addition operator has no expression on the right.");
+        }
+
+        if (left != nullptr)
+        {
+            return left->Solve() + right->Solve();
+        }
+
+        return right->Solve();
     }
 };
 
@@ -88,9 +102,19 @@ public:
     {
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
-        return left->Solve() - right->Solve();
+        if (right == nullptr)
+        {
+            throw SolveException("Subtract operator has no expression on the right.");
+        }
+
+        if (left != nullptr)
+        {
+            return left->Solve() - right->Solve();
+        }
+
+        return Value(0) - right->Solve();
     }
 };
 
@@ -101,8 +125,13 @@ public:
     {
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
+        if (left == nullptr || right == nullptr)
+        {
+            throw SolveException("Multiply operator has no expression on the left or right.");
+        }
+
         return left->Solve() * right->Solve();
     }
 };
@@ -114,8 +143,13 @@ public:
     {
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
+        if (left == nullptr || right == nullptr)
+        {
+            throw SolveException("Division operator has no expression on the left or right.");
+        }
+
         return left->Solve() / right->Solve();
     }
 };
@@ -127,9 +161,14 @@ public:
     {
     }
 
-    virtual int Solve() override
+    virtual Value Solve() override
     {
-        return pow(left->Solve(), right->Solve());
+        if (left == nullptr || right == nullptr)
+        {
+            throw SolveException("Exponent operator has no expression on the left or right.");
+        }
+
+        return left->Solve() ^ right->Solve();
     }
 };
 
@@ -143,7 +182,7 @@ Expression* Parser::InnerParse(const std::vector<LexerToken>& tokens)
     Expression* cur_expr = nullptr;
 
     auto len = tokens.size();
-    for (auto i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
     {
         auto& token = tokens[i];
 
@@ -196,15 +235,20 @@ Expression* Parser::InnerParse(const std::vector<LexerToken>& tokens)
 
             i = end;
 
+            if (end == len)
+            {
+                throw ParsingException("Failed to find closing parenthesis!");
+            }
+
             std::vector<LexerToken> inner_tokens(tokens.begin() + start, tokens.begin() + end);
             new_expr = new ParenthesesExpression(Parser::InnerParse(inner_tokens));
             break;
         }
         case TokenType::ParenthesisEnd:
-            printf("Something went terribly wrong!\n");
+            throw ParsingException("Unexpected closing parenthesis!");
             break;
         default:
-            printf("Unimplemented token type %i!\n", token.type);
+            throw ParsingException("Unimplemented token type!");
             break;
         }
 
